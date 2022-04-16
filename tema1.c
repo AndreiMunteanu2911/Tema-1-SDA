@@ -513,16 +513,16 @@ void test_fix_overload_train() {
 }
 
 int main() {
-    test_arrive_train(); // done
-    test_leave_train(); // done
-    test_add_train_car(); // done
-    test_remove_train_cars(); // done
-    test_move_train_cars(); // NOT COMPLETELY WORKING
-    test_find_express_train(); // done
-    test_find_overload_train(); // uses move_train_cars
-    test_find_optimal_train(); // done
-    test_find_heaviest_sequence_train(); // WIP
-    test_order_train(); // done
+    test_arrive_train(); 
+    test_leave_train(); 
+    test_add_train_car(); 
+    test_remove_train_cars(); 
+    test_move_train_cars(); 
+    test_find_express_train(); 
+    test_find_overload_train(); 
+    test_find_optimal_train(); 
+    test_find_heaviest_sequence_train();
+    test_order_train();
     test_fix_overload_train();
     return 0;
 }

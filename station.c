@@ -134,10 +134,12 @@ void leave_train(TrainStation* station, int platform) {
     copie = pos;
     while (pos != NULL)
     {
-        copie = NULL;
         pos = pos->next;
+        free(copie);
         copie = pos;
     }
+    free(copie);
+    free(pos);
     station->platforms[platform] = NULL;
 }
 
@@ -179,7 +181,6 @@ void add_train_car(TrainStation* station, int platform, int weight) {
     else
     {
         TrainCar* copie = (TrainCar*)malloc(sizeof(TrainCar));
-        TrainCar* mem = (TrainCar*)malloc(sizeof(TrainCar));
         copie = station->platforms[platform]->train_cars;
         while (copie->next != NULL)
         {
@@ -225,33 +226,23 @@ void remove_train_cars(TrainStation* station, int platform, int weight) {
     copie = station->platforms[platform]->train_cars;
     while (copie != NULL && copie->weight == weight)
     {
-        station->platforms[platform]->train_cars = copie->next; // Changed head
-        free(copie); // free old head
-        copie = station->platforms[platform]->train_cars; // Change Temp
+        station->platforms[platform]->train_cars = copie->next;
+        free(copie);
+        copie = station->platforms[platform]->train_cars;
     }
     TrainCar* prev = (TrainCar*)malloc(sizeof(TrainCar));
     prev = station->platforms[platform]->train_cars;
     while (copie != NULL)
     {
-        // Search for the key to be deleted, keep track of
-        // the previous node as we need to change
-        // 'prev->next'
         while (copie != NULL && copie->weight != weight)
         {
             prev = copie;
             copie = copie->next;
         }
-
-        // If key was not present in linked list
         if (copie == NULL)
             return;
-
-        // Unlink the node from linked list
         prev->next = copie->next;
-
-        free(copie); // Free memory
-
-        // Update Temp for next iteration of outer loop
+        free(copie);
         copie = prev->next;
     }
 }
@@ -268,7 +259,7 @@ void remove_train_cars(TrainStation* station, int platform, int weight) {
  */
 void move_train_cars(TrainStation* station, int platform_a, int pos_a,
     int cars_no, int platform_b, int pos_b) {
-    /*if (station == NULL)
+    if (station == NULL)
     {
         return;
     }
@@ -312,68 +303,122 @@ void move_train_cars(TrainStation* station, int platform_a, int pos_a,
     {
         return;
     }
-    int length_a = 1;
-    int lenght_b = 1;
-    TrainCar* p = (TrainCar*)malloc(sizeof(TrainCar));
-    p = station->platforms[platform_a]->train_cars;
+    int pos1 = pos_a;
+    TrainCar* copie1 = station->platforms[platform_a]->train_cars;
+    TrainCar* prev1 = copie1;
+    TrainCar* prim = copie1;
+    pos1 = pos1 - 1;
+    while ((pos1!=0) && (copie1 != NULL))
     {
-        while (p != NULL)
+        if (pos1 == 1)
         {
-            p = p->next;
-            length_a++;
+            prev1 = copie1;
         }
+        pos1=pos1-1;
+        copie1 = copie1->next;
     }
-    p = station->platforms[platform_b]->train_cars;
-    {
-        while (p != NULL)
-        {
-            p = p->next;
-            lenght_b++;
-        }
-    }
-    if (pos_b < 1)
+    if (pos1 != 0)
     {
         return;
     }
-    if (pos_b > lenght_b + 1)
+    int pos2 = pos_b - 1;
+    TrainCar* copie2 = station->platforms[platform_b]->train_cars;
+    TrainCar* prev2 = copie2;
+    while ((pos2) && (copie2 != NULL))
+    {
+        if (pos2 == 1)
+        {
+            prev2 = copie2;
+        }
+        pos2=pos2-1;
+        copie2 = copie2->next;
+    }
+    if (pos2 != 0)
     {
         return;
     }
-    free(p);
-    TrainCar* p_a = (TrainCar*)malloc(sizeof(TrainCar));
-    p_a = station->platforms[platform_a]->train_cars;
-    TrainCar* p_b = (TrainCar*)malloc(sizeof(TrainCar));
-    p_b = station->platforms[platform_b]->train_cars;
-    TrainCar* p_a2 = (TrainCar*)malloc(sizeof(TrainCar));
-    p_a2 = station->platforms[platform_a]->train_cars;
-    TrainCar* p_a4 = (TrainCar*)malloc(sizeof(TrainCar));
-    p_a4 = station->platforms[platform_a]->train_cars;
-    for (int i = 0; i < pos_a - 1+cars_no; i++)
+    if( (pos_a == 1) && (pos_b == 1))
     {
-        p_a4 = p_a4->next;
+        copie1 = station->platforms[platform_a]->train_cars;
+        copie2 = station->platforms[platform_b]->train_cars;
+        station->platforms[platform_b]->train_cars = station->platforms[platform_a]->train_cars;
+        while (cars_no && copie1 != NULL)
+        {
+            if ((cars_no == 1 )|| (copie1->next == NULL))
+            {
+                prim = copie1;
+            }
+            cars_no=cars_no-1;
+            copie1 = copie1->next;
+        }
+        if (cars_no != 0)
+        {
+            station->platforms[platform_b]->train_cars = copie2;
+            return;
+        }
+        station->platforms[platform_a]->train_cars = copie1;
+        if (station->platforms[platform_b]->train_cars != NULL)
+        {
+            prim->next = copie2;
+        }
+        return;
     }
-    TrainCar* p_a3 = (TrainCar*)malloc(sizeof(TrainCar));
-    p_a3 = station->platforms[platform_a]->train_cars;
-    for (int i = 0; i < pos_a - 2; i++)
+    if (pos_a == 1)
     {
-        p_a3 = p_a3->next;
+        copie1 = station->platforms[platform_a]->train_cars;
+        if (prev2 != NULL)
+        {
+            prev2->next = station->platforms[platform_a]->train_cars;
+        }
+        while ((cars_no )&&( copie1 != NULL))
+        {
+            if (cars_no == 1)
+            {
+                prim = copie1;
+            }
+            cars_no=cars_no-1;
+            copie1 = copie1->next;
+        }
+        station->platforms[platform_a]->train_cars = copie1;
+        prim->next = copie2;
+        return;
     }
-    for (int i = 0; i < pos_a - 1; i++)
+    if (pos_b == 1)
     {
-        p_a = p_a->next;
+        station->platforms[platform_b]->train_cars = copie1;
+        while ((cars_no )&& (copie1 != NULL))
+        {
+            if (cars_no == 1)
+            {
+                prim = copie1;
+            }
+            cars_no=cars_no-1;
+            copie1 = copie1->next;
+        }
+        prev1->next = copie1;
+        if (station->platforms[platform_b]->train_cars != NULL)
+        {
+            prim->next = copie2;
+        }
+        return;
     }
-    for (int i = 0; i < pos_b - 2; i++)
+    prev2->next = copie1;
+    while ((cars_no) &&( copie1 != NULL))
     {
-        p_b = p_b->next;
+        if (cars_no == 1)
+        {
+            prim = copie1;
+        }
+        cars_no=cars_no-1;
+        copie1 = copie1->next;
     }
-    for (int i = 0; i < cars_no - 1; i++)
+    if (cars_no != 0)
     {
-        p_a = p_a->next;
+        prev2->next = copie2;
+        return;
     }
-    p_a3->next = p_a4;
-    p_a->next = p_b->next;
-    p_b->next = p_a;*/
-return;
+    prev1->next = copie1;
+    prim->next = copie2;
 }
 
 
@@ -425,29 +470,34 @@ int find_overload_train(TrainStation* station) {
     {
         return;
     }
-    int* v = (int*)malloc(((station->platforms_no) + 1) * sizeof(int));
+    int suma = 0;
+    int max = 0;
+    int nr = -1;
     for (int i = 0; i < station->platforms_no; i++)
     {
-        if (station->platforms[i] != NULL)
+        if (station->platforms[i] == NULL)
         {
-            v[i] = station->platforms[i]->locomotive_power;
-            TrainCar* copie = station->platforms[i]->train_cars;
-            while (copie != NULL)
-            {
-                v[i] = v[i] - copie->weight;
-                copie = copie->next;
-            }
+            return;
+        }
+        if (station->platforms[i]->locomotive_power == NULL)
+        {
+            return;
+        }
+        suma = 0;
+        TrainCar* copie = (TrainCar*)malloc(sizeof(TrainCar));
+        copie = station->platforms[i]->train_cars;
+        while (copie != NULL)
+        {
+            suma =suma + copie->weight;
+            copie = copie->next;
+        }
+        if (station->platforms[i]->locomotive_power < suma)
+        {
+            nr = i;
+            return i;
         }
     }
-    int max = -1;
-    for (int i = 0; i < station->platforms_no; i++)
-    {
-        if (v[i] < 0)
-        {
-            max = i;
-        }
-    }
-    return max;
+    return nr;
 }
 
 
@@ -508,87 +558,68 @@ int find_heaviest_sequence_train(TrainStation* station, int cars_no, TrainCar** 
     {
         return;
     }
-    // To store current window sum
-    int sum = 0;
-
-    // To store maximum sum
-    int maxSum = 0;
-    start_car = NULL;
-    for (int i = 0; i < station->platforms_no;i++)
+    if (station == NULL)
+        return;
+    if (station->platforms == NULL)
+        return;
+    int suma = 0;
+    int max = 0;
+    int nr = -1;
+    for (int i = 0; i < station->platforms_no; i++)
     {
-        printf("%d", i);
-        if (station->platforms == NULL)
-        {
-            break;
-        }
         if (station->platforms[i] == NULL)
         {
-            break;
+            continue;
         }
         if (station->platforms[i]->train_cars == NULL)
         {
-            break;
+            continue;
         }
-        // Pointer to the start of window
-        TrainCar* start = station->platforms[i]->train_cars;
-
-        // Pointer to the end of window
-        TrainCar* end = start;
-        int sum = 0;
-
-        for (int contor = 0; contor < cars_no; contor++)
+        suma = 0;
+        int car = cars_no;
+        TrainCar* copie = station->platforms[i]->train_cars;
+        TrainCar* copie2 = station->platforms[i]->train_cars;
+        if (cars_no == 1)
         {
-            
-            if (end == NULL)
-            {
-                break;
+            while (copie != NULL) {
+                if (max < copie->weight) {
+                    max = copie->weight;
+                    *start_car = copie;
+                    nr = i;
+                }
+                copie = copie->next;
             }
-            end = end->next;
         }
-
-        // Find the sum of first k nodes
-        for ( int k = 0; k < cars_no; k++) {
-            if (end == NULL)
-            {
-                break;
+        while (car && copie2 != NULL && cars_no != 1)
+        {
+            suma =suma+ copie2->weight;
+            car=car-1;
+            copie2 = copie2->next;
+        }
+        if (car == 0 && cars_no != 1) {
+            if (suma > max) {
+                max = suma;
+                *start_car = copie;
+                nr = i;
             }
-            sum += end->weight;
-            end = end->next;
-        }
-
-        maxSum = sum;
-        // Move window by one step and
-        // update sum. Node pointed by
-        // start is excluded from current
-        // window so subtract it. Node
-        // pointed by end is added to
-        // current window so add its value.
-        while (end != NULL) {
-
-            // Subtract the starting element
-            // from previous window
-            sum -= start->weight;
-            start = start->next;
-
-            // Add the element next to the end
-            // of previous window
-            sum += end->weight;
-            end = end->next;
-
-            // Update the maximum sum so far
-            // maxSum = max(maxSum, sum);
-            if (sum > maxSum)
-            {
-                start_car = start;
-                maxSum = sum;
+            while (copie2 != NULL) {
+                suma =suma+ copie2->weight;
+                suma =suma- copie->weight;
+                if (suma > max) {
+                    max = suma;
+                    *start_car = copie->next;
+                    nr = i;
+                }
+                copie = copie->next;
+                copie2 = copie2->next;
             }
         }
     }
-    if (maxSum == 0)
+    if (nr == -1)
     {
-        maxSum = -1;
+        *start_car = NULL;
     }
-    return maxSum;
+    return nr;
 }
 
 
@@ -649,74 +680,5 @@ void order_train(TrainStation* station, int platform) {
  * station: gara existenta
  */
 void fix_overload_train(TrainStation* station) {
-    //if (station == NULL)
-    //{
-    //    return;
-    //}
-    //int pos = find_overload_train(station);
-    //if (pos == -1)
-    //{
-    //    return;
-    //}
-    //TrainCar* p = (TrainCar*)malloc(sizeof(TrainCar));
-    //p = station->platforms[pos]->train_cars;
-    //int lenght = 0;
-    //int current = station->platforms[pos]->locomotive_power;
-    //while (p != NULL)
-    //{
-    //    current = current - p->weight;
-    //    lenght++;
-    //    p = p->next;
-    //}
-    //int* v = (int*)malloc(lenght * sizeof(int));
-    //p = station->platforms[pos]->train_cars;
-    //for (int i = 0; i < lenght; i++)
-    //{
-    //    if (station->platforms[i] != NULL)
-    //    {
-    //        v[i] = current;
-    //        v[i] = v[i] + p->weight;
-    //        p = p->next;
-    //    }
-    //}
-    //int min = 0;
-    //int i = 0;
-    //for (i = 0; i < lenght; i++)
-    //{
-    //    if ((v[i] < v[min]) && (v[i] > 0))
-    //    {
-    //        min = i;
-    //    }
-    //}
-    //TrainCar* copie = (TrainCar*)malloc(sizeof(TrainCar));
-    //copie = station->platforms[pos]->train_cars;
-    //while (copie != NULL && min==0)
-    //{
-    //    station->platforms[pos]->train_cars = copie->next; // Changed head
-    //    free(copie); // free old head
-    //    copie = station->platforms[pos]->train_cars; // Change Temp
-    //}
-    //TrainCar* prev = (TrainCar*)malloc(sizeof(TrainCar));
-    //prev = station->platforms[pos]->train_cars;
-    //    // Search for the key to be deleted, keep track of
-    //    // the previous node as we need to change
-    //    // 'prev->next'
-    //    for (int bfvbfb=0; bfvbfb<min; bfvbfb++)
-    //    {
-    //        prev = copie;
-    //        copie = copie->next;
-    //    }
-
-    //    // If key was not present in linked list
-    //    if (copie == NULL)
-    //        return;
-
-    //    // Unlink the node from linked list
-    //    prev->next = copie->next;
-
-    //    free(copie); // Free memory
-
-    //    // Update Temp for next iteration of outer loop
-    //    copie = prev->next;
     return;
 }
